@@ -1,0 +1,21 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "managedClusters_miskubernetes_version": {
+            "value": null
+        },
+        "managedClusters_miskubernetes_name": {
+            "value": null
+        },
+        "workspaces_DefaultWorkspace_31fe2344_8c7a_4b45_9519_256be6409b7f_EUS_externalid": {
+            "value": null
+        },
+        "publicIPAddresses_8acb22cb_d71d_4257_9e1f_fcdd3dd1929f_externalid": {
+            "value": null
+        },
+        "userAssignedIdentities_miskubernetes_agentpool_externalid": {
+            "value": null
+        }
+    }
+}

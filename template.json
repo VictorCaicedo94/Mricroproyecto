@@ -1,0 +1,207 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "managedClusters_miskubernetes_version": {
+            "type": "SecureString"
+        },
+        "managedClusters_miskubernetes_name": {
+            "defaultValue": "miskubernetes",
+            "type": "String"
+        },
+        "workspaces_DefaultWorkspace_31fe2344_8c7a_4b45_9519_256be6409b7f_EUS_externalid": {
+            "defaultValue": "/subscriptions/31fe2344-8c7a-4b45-9519-256be6409b7f/resourceGroups/DefaultResourceGroup-EUS/providers/Microsoft.OperationalInsights/workspaces/DefaultWorkspace-31fe2344-8c7a-4b45-9519-256be6409b7f-EUS",
+            "type": "String"
+        },
+        "publicIPAddresses_8acb22cb_d71d_4257_9e1f_fcdd3dd1929f_externalid": {
+            "defaultValue": "/subscriptions/31fe2344-8c7a-4b45-9519-256be6409b7f/resourceGroups/MC_gruporecursos_miskubernetes_eastus/providers/Microsoft.Network/publicIPAddresses/8acb22cb-d71d-4257-9e1f-fcdd3dd1929f",
+            "type": "String"
+        },
+        "userAssignedIdentities_miskubernetes_agentpool_externalid": {
+            "defaultValue": "/subscriptions/31fe2344-8c7a-4b45-9519-256be6409b7f/resourceGroups/MC_gruporecursos_miskubernetes_eastus/providers/Microsoft.ManagedIdentity/userAssignedIdentities/miskubernetes-agentpool",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2022-08-02-preview",
+            "name": "[parameters('managedClusters_miskubernetes_name')]",
+            "location": "eastus",
+            "sku": {
+                "name": "Basic",
+                "tier": "Free"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "kubernetesVersion": "1.23.12",
+                "dnsPrefix": "[concat(parameters('managedClusters_miskubernetes_name'), '-dns')]",
+                "agentPoolProfiles": [
+                    {
+                        "name": "agentpool",
+                        "count": 1,
+                        "vmSize": "Standard_DS2_v2",
+                        "osDiskSizeGB": 128,
+                        "osDiskType": "Managed",
+                        "kubeletDiskType": "OS",
+                        "maxPods": 110,
+                        "type": "VirtualMachineScaleSets",
+                        "availabilityZones": [
+                            "1",
+                            "2",
+                            "3"
+                        ],
+                        "maxCount": 2,
+                        "minCount": 1,
+                        "enableAutoScaling": true,
+                        "powerState": {
+                            "code": "Running"
+                        },
+                        "orchestratorVersion": "1.23.12",
+                        "enableNodePublicIP": false,
+                        "mode": "System",
+                        "osType": "Linux",
+                        "osSKU": "Ubuntu",
+                        "enableFIPS": false
+                    }
+                ],
+                "servicePrincipalProfile": {
+                    "clientId": "msi"
+                },
+                "addonProfiles": {
+                    "azureKeyvaultSecretsProvider": {
+                        "enabled": false
+                    },
+                    "azurepolicy": {
+                        "enabled": false
+                    },
+                    "httpApplicationRouting": {
+                        "enabled": false
+                    },
+                    "omsAgent": {
+                        "enabled": true,
+                        "config": {
+                            "logAnalyticsWorkspaceResourceID": "[parameters('workspaces_DefaultWorkspace_31fe2344_8c7a_4b45_9519_256be6409b7f_EUS_externalid')]"
+                        }
+                    }
+                },
+                "nodeResourceGroup": "[concat('MC_gruporecursos_', parameters('managedClusters_miskubernetes_name'), '_eastus')]",
+                "enableRBAC": true,
+                "networkProfile": {
+                    "networkPlugin": "kubenet",
+                    "loadBalancerSku": "Standard",
+                    "loadBalancerProfile": {
+                        "managedOutboundIPs": {
+                            "count": 1
+                        },
+                        "effectiveOutboundIPs": [
+                            {
+                                "id": "[parameters('publicIPAddresses_8acb22cb_d71d_4257_9e1f_fcdd3dd1929f_externalid')]"
+                            }
+                        ],
+                        "backendPoolType": "nodeIPConfiguration"
+                    },
+                    "podCidr": "10.244.0.0/16",
+                    "serviceCidr": "10.0.0.0/16",
+                    "dnsServiceIP": "10.0.0.10",
+                    "dockerBridgeCidr": "172.17.0.1/16",
+                    "outboundType": "loadBalancer",
+                    "podCidrs": [
+                        "10.244.0.0/16"
+                    ],
+                    "serviceCidrs": [
+                        "10.0.0.0/16"
+                    ],
+                    "ipFamilies": [
+                        "IPv4"
+                    ]
+                },
+                "identityProfile": {
+                    "kubeletidentity": {
+                        "resourceId": "[parameters('userAssignedIdentities_miskubernetes_agentpool_externalid')]",
+                        "clientId": "4f230ce8-e623-4dd0-9be7-ff1ecc831dfa",
+                        "objectId": "bd785fd2-1172-4c3c-a78d-675648965fb4"
+                    }
+                },
+                "autoScalerProfile": {
+                    "balance-similar-node-groups": "false",
+                    "expander": "random",
+                    "max-empty-bulk-delete": "10",
+                    "max-graceful-termination-sec": "600",
+                    "max-node-provision-time": "15m",
+                    "max-total-unready-percentage": "45",
+                    "new-pod-scale-up-delay": "0s",
+                    "ok-total-unready-count": "3",
+                    "scale-down-delay-after-add": "10m",
+                    "scale-down-delay-after-delete": "10s",
+                    "scale-down-delay-after-failure": "3m",
+                    "scale-down-unneeded-time": "10m",
+                    "scale-down-unready-time": "20m",
+                    "scale-down-utilization-threshold": "0.5",
+                    "scan-interval": "10s",
+                    "skip-nodes-with-local-storage": "false",
+                    "skip-nodes-with-system-pods": "true"
+                },
+                "disableLocalAccounts": false,
+                "securityProfile": {},
+                "storageProfile": {
+                    "diskCSIDriver": {
+                        "enabled": true,
+                        "version": "v1"
+                    },
+                    "fileCSIDriver": {
+                        "enabled": true
+                    },
+                    "snapshotController": {
+                        "enabled": true
+                    }
+                },
+                "oidcIssuerProfile": {
+                    "enabled": false
+                },
+                "guardrailsProfile": {
+                    "level": "Off",
+                    "version": "[parameters('managedClusters_miskubernetes_version')]"
+                },
+                "workloadAutoScalerProfile": {}
+            }
+        },
+        {
+            "type": "Microsoft.ContainerService/managedClusters/agentPools",
+            "apiVersion": "2022-08-02-preview",
+            "name": "[concat(parameters('managedClusters_miskubernetes_name'), '/agentpool')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('managedClusters_miskubernetes_name'))]"
+            ],
+            "properties": {
+                "count": 1,
+                "vmSize": "Standard_DS2_v2",
+                "osDiskSizeGB": 128,
+                "osDiskType": "Managed",
+                "kubeletDiskType": "OS",
+                "maxPods": 110,
+                "type": "VirtualMachineScaleSets",
+                "availabilityZones": [
+                    "1",
+                    "2",
+                    "3"
+                ],
+                "maxCount": 2,
+                "minCount": 1,
+                "enableAutoScaling": true,
+                "powerState": {
+                    "code": "Running"
+                },
+                "orchestratorVersion": "1.23.12",
+                "enableNodePublicIP": false,
+                "mode": "System",
+                "osType": "Linux",
+                "osSKU": "Ubuntu",
+                "enableFIPS": false
+            }
+        }
+    ]
+}
